@@ -1,0 +1,143 @@
+.data
+	
+	#***************************** QUESTIONS / PROMPTS ************************
+
+	prompta:	.asciiz	"\n Input integer for A: "
+	promptb:	.asciiz	"\n Input integer for B: "
+	promptc:	.asciiz "\n Input integer for C: "
+
+	#***************************** Responses ************************
+	
+	greeting:	.asciiz "\n Hello, welcome to my Homework6 program \n 
+This program will solve the following equation, based on your inputs for variables A, B, and C \n
+9C - 2B*1A + 7 - 5C*BC + 23 - AA \n"
+
+	total:		.asciiz "\n The solution to the equation is: "
+
+
+.globl main
+
+
+
+.text
+	
+
+main:
+
+	li $v0, 4
+	la $a0, greeting
+	syscall
+
+#********************************* Prompt for variables A,B,C ********************************
+	li $v0, 4			#prompt user for variable 'A' input
+	la $a0, prompta
+	syscall
+
+	li $v0, 5			#store value of 'A' in s0
+	syscall
+	move $s0, $v0
+
+	li $v0, 4			#prompt user for variable 'B' input
+	la $a0, promptb
+	syscall
+
+	li $v0, 5			#store value of 'B' in s1
+	syscall
+	move $s1, $v0
+
+	li $v0, 4			#prompt user for variable 'C' input
+	la $a0, promptc
+	syscall
+
+	li $v0, 5			#store value of 'C' in s2
+	syscall
+	move $s2, $v0
+
+
+
+###### CONDUCT MATHS: 9C-(2B*1A)+7-(5C*BC)+23-AA #######
+	
+
+##### BEGIN PUSHING ######
+
+	move $t0, $s2		#conduct 9C, store in t0
+	li $t1, 9
+	mul $t0, $t0, $t1
+	
+	subu $sp, $sp, 4	#create space on stack			
+	sw $t0, ($sp)		#store 9C in stack				-4
+
+
+
+	move $t0, $s1		#load B into t0
+	li $t1, -2		#load -2 into t1
+	mul $t0,$t0, $t1	#multiply -2(B) to get new t0
+	
+	move $t1, $s0		#load A to t1
+	mul $t0, $t0, $t1		#multiply -2B * A to get new t0
+	
+	subu $sp, $sp, 4	#create space on stack
+	sw $t0, ($sp)		#store -2B*A in stack				-8
+
+	
+	
+	move $t0, $s2		#load C into t0
+	li $t1, -5		#load -5 into t1
+	mul $t0, $t0, $t1	# -5(C) stored in t0
+
+	move $t1, $s1		#load B into t1
+	move $t2, $s2		#load C into t2
+	mul $t1, $t1, $t2	#mult B(C), store in t1
+
+	mul $t0, $t1, $t0	#mult -5(C) * B(C), store in t0
+	
+	subu $sp, $sp, 4	#allocate space in stack
+	sw $t0, ($sp)		#store -5C * B(C) in stack			-12
+
+
+	move $t0, $s0		#load A into t0
+	mul $t0, $t0, $t0	#multiply A by itself for new t0
+	li $t1, -1
+	mul $t0, $t0, $t1	#multiply AA by -1 for -AA
+
+	subu $sp, $sp, 4	#allocate space in stack
+	sw $t0, ($sp)		#store -AA in stack				-16
+
+
+	
+########### BEGIN POPPING ##############
+
+	li $t1, 30		#constant value +30 pulled from 7+23
+	
+	lw $t0, ($sp)		#pop AA off the stack
+	addu $sp, $sp, 4	#adjust pointer
+	addu $t1, $t1, $t0	# -AA added to constant 30			-16
+
+	lw $t0, ($sp)		#pop -5C * B(C) from stack
+	addu $sp, $sp, 4	#adjust pointer
+	addu $t1, $t1, $t0	# -5C * B(C) added to -AA + 30			-12
+
+	lw $t0, ($sp)		#pop -2B(A) from stack
+	addu $sp, $sp, 4	#adjust pointer
+	addu $t1, $t1, $t0	# -2BA added to -5C*BC -AA +30			-8
+
+	lw $t0, ($sp)		#pop 9C from Stack
+	addu $sp, $sp, 4	#adjust to end of stack
+	addu $t1, $t1, $t0	#final equation: 9C - 2BA - 5C*BC - AA + 30	-4
+
+
+##### TOTAL ######
+
+	li $v0, 4
+	la $a0, total
+	syscall
+
+	li $v0, 1
+	move $a0, $t1
+	syscall
+
+
+###### EXIT ######
+
+	li $v0, 10
+	syscall
